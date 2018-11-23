@@ -1,0 +1,70 @@
+#arrow plot
+rm(list = ls())
+habitats <- c('sav','coa','auc','con','sav')
+scenarios <- c("ee","ew","ed")
+source("~/Dropbox/Functions/NUNEZ.FNS.NEW.R")
+
+for( r in 1:length(habitats)){
+  habs <- habitats[r]
+  for( j in 1: length(scenarios)){
+pdf(file = paste0('~/Dropbox/Projects/2018.Gabon.GJAM.predict/FIGURES/arrowplots/arrow.',scenarios[j],".", habs,".pdf"), width = 5, height = 10, onefile = FALSE)
+#RCP4.5
+results.45 <- paste0(scenarios[j],"4")
+results.85 <- paste0(scenarios[j],"8")
+plot.new()
+require(scales)
+
+
+load(paste0("~/Dropbox/Projects/2018.Gabon.GJAM.predict/sp.proj/all.sp.all.yrs.",habs,'.',results.45,".rdata")) #j, k
+pr.present4  <- base
+
+load(paste0("~/Dropbox/Projects/2018.Gabon.GJAM.predict/sp.proj/all.sp.all.yrs.",habs,'.',results.85,".rdata")) #j, k
+pr.present8  <- base
+
+
+#arrow change plot
+par(mar = c(2.5,0,3,0))
+new <- pr.present4[,c(1,2,(ncol(pr.present4)))]
+new$change <- new$`2020` - new$`2099`
+new <- new[order(new$change),]
+
+fut <- pr.present8[,c(1,2,(ncol(pr.present8)))]
+fut$change <- fut$`2020` - fut$`2099`
+fut <- fut[match(new$species, fut$species),]
+
+plot(1,1,ylim = c(1,nrow(fut)), xlim = c(min(fut$change), max(fut$change)), type = 'n', bty = 'n', yaxt = 'n', ylab = '', xaxt = "n", xlab = "", main = paste0("Change in Probability of Presence \nEnd of Century (", habs, ", ", scenarios[j], ")"))
+axis(1, at = c(round(min(fut$change), digits = 2), round(0, digits = 1) , round(max(fut$change), digits = 2)), lwd = 2)
+for(i in 1:nrow(new)){
+  segments(0,1,0,nrow(new))
+  segments(0,i,fut[i,"change"],i, lwd = 7, col = "darkorange")
+  segments(0,i,new[i,"change"],i, lwd = 2, lty = 1)
+  points(0,i, pch = 16, bg = "black", col = "black", cex = 1)
+  
+  
+  if(new[i,"change"] < 0){
+    posit <- 4
+  }else{
+    posit <- 2
+  }
+  if(fut[i,"change"] > 0 & new[i,"change"] >0){
+  text(0,i, new[i,"species"], pos = posit, cex = 0.8)
+  }
+  if(fut[i,"change"] < 0 & new[i,"change"] < 0){
+    text(0,i, new[i,"species"], pos = posit, cex = 0.8)
+  }
+  if(fut[i,"change"] > 0 & new[i,"change"] < 0){
+    text(fut[i,"change"],i, new[i,"species"], pos = posit, cex = 0.8)
+    posit <- 4
+  }
+  if(fut[i,"change"] < 0 & new[i,"change"] > 0){
+    text(fut[i,"change"],i, new[i,"species"], pos = posit, cex = 0.8)
+    posit <- 2
+  }
+}
+
+legend(0.2, 40, c("RCP 4.5", "RCP 8.5"), lty = c(1,1), lwd = c(2,7), col = c("black", "darkorange"))
+dev.off()
+
+  }
+}
+
